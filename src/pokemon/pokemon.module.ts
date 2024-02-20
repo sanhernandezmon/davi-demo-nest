@@ -1,9 +1,8 @@
 import { Module } from '@nestjs/common';
-import { PokemonController } from './pokemon.controller';
 import { PokemonService } from './pokemon.service';
+import { PokemonController } from './pokemon.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { PokemonDao } from './pokemon.dao';
-
+import { Pokemon } from './entities/pokemon.entity';
 
 @Module({
   imports: [
@@ -11,14 +10,20 @@ import { PokemonDao } from './pokemon.dao';
       type: 'postgres',
       host: 'localhost',
       port: 5432,
-      username: 'your_username',
-      password: 'your_password',
-      database: 'your_database',
-      entities: [__dirname + '/**/*.model{.ts,.js}'],
-      synchronize: true, // set to false in production
+      password: 'postgres',
+      username: 'postgres',
+      database: 'pokemonDb',
+      synchronize: true,
+      logging: true,
+      entities: [Pokemon],
+      extra: {
+        // Create the database if it does not exist
+        createDatabase: true,
+      },
     }),
+    TypeOrmModule.forFeature([Pokemon])
   ],
   controllers: [PokemonController],
-  providers: [PokemonService , PokemonDao],
+  providers: [PokemonService],
 })
 export class PokemonModule {}
