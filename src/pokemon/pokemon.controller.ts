@@ -1,33 +1,37 @@
-import { Controller, Get, Param, Post, Body, Put, Delete } from '@nestjs/common';
-import { Pokemon } from '../models/Pokemon.model';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { PokemonService } from './pokemon.service';
+import { CreatePokemonDto } from './dto/create-pokemon.dto';
+import { UpdatePokemonDto } from './dto/update-pokemon.dto';
+import { Pokemon } from './entities/pokemon.entity';
+import { AuthGuard } from 'src/guards/auth.guard';
 
 @Controller('pokemon')
+@UseGuards(AuthGuard)
 export class PokemonController {
-    constructor(private readonly pokemonService: PokemonService) {}
+  constructor(private readonly pokemonService: PokemonService) {}
 
-    @Get()
-    async getAllPokemons(): Promise<Pokemon[]> {
-        return this.pokemonService.getAllPokemons();
-    }
+  @Post()
+  create(@Body() createPokemonDto: CreatePokemonDto) : Promise<Pokemon> {
+    return this.pokemonService.create(createPokemonDto);
+  }
 
-    @Get(':name')
-    async getPokemonByName(@Param('name') name: string): Promise<Pokemon> {
-        return this.pokemonService.getPokemonByName(name);
-    }
+  @Get()
+  findAll():Promise<Pokemon[]> {
+    return this.pokemonService.findAll();
+  }
 
-    @Post()
-    async createPokemon(@Body() pokemon: Pokemon): Promise<Pokemon> {
-        return this.pokemonService.createPokemon(pokemon);
-    }
+  @Get(':id')
+  findOne(@Param('id') id: string) : Promise<Pokemon> {
+    return this.pokemonService.findOne(+id);
+  }
 
-    @Put()
-    async updatePokemon(@Body() pokemon: Pokemon): Promise<Pokemon> {
-        return this.pokemonService.updatePokemon(pokemon);
-    }
+  @Patch(':id')
+  update(@Param('id' , ParseIntPipe) id: string, @Body() updatePokemonDto: UpdatePokemonDto) : Promise<Pokemon> {
+    return this.pokemonService.update(+id, updatePokemonDto);
+  }
 
-    @Delete(':id')
-    async deletePokemon(@Param('id') id: string): Promise<void> {
-        return this.pokemonService.deletePokemon(+id);
-    }
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.pokemonService.remove(+id);
+  }
 }

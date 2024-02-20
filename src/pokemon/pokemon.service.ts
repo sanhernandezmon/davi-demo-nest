@@ -1,28 +1,55 @@
 import { Injectable } from '@nestjs/common';
-import { Pokemon } from '../models/pokemon.model';
-import { PokemonDao } from './pokemon.dao';
+import { CreatePokemonDto } from './dto/create-pokemon.dto';
+import { UpdatePokemonDto } from './dto/update-pokemon.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Pokemon } from './entities/pokemon.entity';
+import { Repository } from 'typeorm';
+
 
 @Injectable()
 export class PokemonService {
-    constructor(private readonly pokemonDao: PokemonDao) {}
 
-    async getAllPokemons(): Promise<Pokemon[]> {
-        return this.pokemonDao.getAllPokemons();
-    }
+  constructor(
+    @InjectRepository(Pokemon) private readonly pokemonRepository: Repository<Pokemon>,
+  ) {}
 
-    async getPokemonByName(name: string): Promise<Pokemon> {
-        return this.pokemonDao.getPokemonByName(name);
-    }
+  create(createPokemonDto: CreatePokemonDto) {
+    const pokemon = new Pokemon();
+    pokemon.name = createPokemonDto.name
+    pokemon.level = createPokemonDto.level
+    pokemon.type = createPokemonDto.type
+    pokemon.isShiny=createPokemonDto.isShiny
 
-    async createPokemon(pokemon: Pokemon): Promise<Pokemon> {
-        return this.pokemonDao.createPokemon(pokemon);
-    }
+    return this.pokemonRepository.save(pokemon);
+  }
 
-    async updatePokemon(pokemon: Pokemon): Promise<Pokemon> {
-        return this.pokemonDao.updatePokemon(pokemon);
-    }
+  findAll() {
+    return this.pokemonRepository.find();
+  }
 
-    async deletePokemon(id: number): Promise<void> {
-        return this.pokemonDao.deletePokemon(id);
+  findOne(id: number) {
+    return this.pokemonRepository.findOneByOrFail({id : id});
+  }
+  
+
+  async update(id: number, updatePokemonDto: UpdatePokemonDto) {
+    const pokemon = await this.pokemonRepository.findOneByOrFail({id : id});
+    if (!pokemon) {
+      throw new Error(`Pokemon with id ${id} not found`);
     }
+  
+    // Update the pokemon entity with the new values from updatePokemonDto
+    pokemon.name = updatePokemonDto.name;
+    pokemon.level = updatePokemonDto.level;
+    pokemon.type = updatePokemonDto.type;
+    pokemon.isShiny = updatePokemonDto.isShiny;
+  
+    // Save the updated pokemon entity
+    return this.pokemonRepository.save(pokemon);
+  }
+  
+
+  remove(id: number) {
+    return this.pokemonRepository.delete(id);
+  }
 }
